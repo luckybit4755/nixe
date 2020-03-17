@@ -1,0 +1,43 @@
+#!/bin/bash
+
+export NODE_PATH=/usr/lib/nodejs:/usr/lib/node_modules:/usr/share/javascript
+
+set_title() {
+	echo -e "\033]0;" ${*} "\007"; 
+}
+
+_export() {
+	set -o vi
+	export PATH=${HOME}/bin:/opt/local/bin:/opt/local/sbin:/sbin:/usr/sbin:${PATH}:/usr/local/maven/bin
+	export DISPLAY=:0
+	export PS1="\h:\W[\t]: "
+
+	export VISUAL="vim"
+
+	export NO_TEST="-Dmaven.test.skip=true"
+	export HISTFILESIZE="50000"
+
+	source ${HOME}/bin/Bang.sh
+	source ${HOME}/bin/vt100.colors.sh
+}
+
+_aliases() {
+	alias sup='svn status | grep /'
+	source ${HOME}/bin/aliases.sh
+
+	if [ -d ~/bin/alias.d ] ; then
+		local alias
+		for alias in ~/bin/alias.d/* ; do
+			source ${alias}
+		done
+	fi
+}
+
+_setup() {
+	_export 
+	_aliases
+}
+
+_setup
+
+export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
