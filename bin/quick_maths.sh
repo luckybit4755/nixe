@@ -8,18 +8,18 @@ _quick_maths_main() {
 		function begin() {
 			printf "{";
 		}
+
 		function show( key, value ) {
 			if ( F ) printf( ", " ); 
 			printf( "\"%s\":%." precision "f", key, value );
 			F = 33;
 		}
+
 		function end() {
 			print "}";
 		}
-		{
-			VALUES[ COUNT++ ] = $field;
-		}
-		END {
+
+		function quick_math() {
 			begin();
 
 			minimum = VALUES[ 0 ];
@@ -55,6 +55,18 @@ _quick_maths_main() {
 			}
 
 			end();
+		}
+
+		#############################################################################
+
+		{
+			VALUES[ COUNT++ ] = $field;
+		}
+
+		END {
+			if ( COUNT ) {
+				quick_math();
+			}
 		}
 	'
 }
