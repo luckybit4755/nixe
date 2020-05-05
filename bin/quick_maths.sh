@@ -20,8 +20,6 @@ _quick_maths_main() {
 			VALUES[ COUNT++ ] = $field;
 		}
 		END {
-
-			print VALUES[ 0 ];
 			begin();
 
 			minimum = VALUES[ 0 ];
