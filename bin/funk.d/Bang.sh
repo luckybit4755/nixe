@@ -970,14 +970,6 @@ _y_complete() {
 }   
 complete -F _y_complete -o filenames y 2>/dev/null
 
-##############################################################################
-#
-# to support invocation of functions from the cli (without sourcing)
-#
-##############################################################################
-
-${*}
-
 #
 # $Log: Bang.sh,v $
 # Revision 1.14  2006/02/03 16:28:36  val

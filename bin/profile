@@ -13,24 +13,25 @@ _export() {
 	export PS1="\h:\W[\t]: "
 
 	export VISUAL="vim"
+	export EDITOR="vim"
 
 	export NO_TEST="-Dmaven.test.skip=true"
 	export HISTFILESIZE="50000"
+}
 
-	source ${HOME}/bin/Bang.sh
-	source ${HOME}/bin/vt100.colors.sh
+_source_em() {
+	local directory=${1}
+	if [ -d ${directory} ] ; then
+		local script
+		for script in ${directory}/* ; do
+			source ${script}
+		done
+	fi
 }
 
 _aliases() {
-	alias sup='svn status | grep /'
-	source ${HOME}/bin/aliases.sh
-
-	if [ -d ~/bin/alias.d ] ; then
-		local alias
-		for alias in ~/bin/alias.d/* ; do
-			source ${alias}
-		done
-	fi
+	_source_em ~/bin/alias.d
+	_source_em ~/bin/funk.d
 }
 
 _setup() {
