@@ -195,9 +195,18 @@ _f_host() {
 	ssh ${*}
 }
 
+_f_frag() {
+	glslViewer ${*}
+}
+
 _f_what() {
 	if [ -e ${*} ] ; then
-		file ${*} | awk '{print $2}' | tr '[A-Z]' '[a-z]' | tr -d '[[:punct:]]' 
+		local type=$( file ${*} | awk '{print $2}' | tr '[A-Z]' '[a-z]' | tr -d '[[:punct:]]' )
+		local ext=$( echo ${*} | sed 's,.*\.,,' )
+		case "${ext}" in
+			frag) type="${ext}" ;;
+		esac
+		echo ${type}
 	else
 		if [ "http://" = "$( echo ${*} | cut -c1-7 )" ] ; then
 			echo url
