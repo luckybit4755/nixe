@@ -61,6 +61,9 @@ cat << EOM
 precision mediump float;
 #endif
 
+#define PI  3.141592653589793
+#define PI2 6.283185307179586
+
 uniform vec2 u_resolution;
 uniform float u_time;
 
@@ -135,7 +138,9 @@ _new_create_if_needed() {
 		local ext=$( echo ${file} | sed 's,.*\.,,' )
 		local type=${ext}
 		_new_${type} ${file} > ${file}
-		chmod 755 ${file}
+		if [ frag != "${ext}" ] && [ html != "${ext}" ] ; then 
+			chmod 755 ${file}
+		fi
 	fi
 }
 
