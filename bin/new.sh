@@ -13,7 +13,7 @@ cat << EOM | cut -f2- > $1
 EOM
 }
 
-_new_js() {
+_new_js_og() {
 	local file="${*}"
 	local script=$( basename "${file}" | cut -f1 -d. | tr - _ )
 cat << EOM | cut -f2- > $1
@@ -25,16 +25,40 @@ cat << EOM | cut -f2- > $1
 		const self = this;
 
 		self.main = ( args ) => {
-			fs.readFile(
-				args[ 0 ],
-				'utf-8', 
-				(e,d)=>{
-					if ( e ) throw e;
-					let o = JSON.parse( d );
-					console.log( JSON.stringify( o, false, '\t' ) );
-				},
-			);
+			fs.readFile( args[ 0 ], 'utf-8', (e,d)=>{
+				if ( e ) throw e;
+				let o = JSON.parse( d );
+				console.log( JSON.stringify( o, false, '\t' ) );
+			});
 		};
+	};
+
+	new ${script}().main( process.argv.slice( 2 ) );
+EOM
+}
+
+_new_js() {
+	local file="${*}"
+	local script=$( basename "${file}" | cut -f1 -d. | tr - _ )
+cat << EOM | cut -f2- > $1
+	#!/usr/bin/env node 
+
+	const fs = require( 'fs' );
+
+	class ${script} {
+		constructor() {
+		}
+
+		main( args ) {
+			fs.readFile( args[ 0 ], 'utf-8', (e,d)=>{
+				if ( e ) throw e;
+				this.onFile( JSON.parse( d ) );
+			});
+		}
+
+		onFile(contents) {
+			console.log( JSON.stringify( contents, false, '\t' ) );
+		}
 	};
 
 	new ${script}().main( process.argv.slice( 2 ) );
@@ -82,7 +106,7 @@ cat << EOM
 	<HEAD>
 		<TITLE>$( basename ${*} | sed 's/\.html$//' )</TITLE>
 		<script type="text/javascript">
-			/* window.onload = function() {}; */
+			window.addEventListener('load', () => {} );
 		</script>
 		<style>
 			body {
@@ -149,6 +173,7 @@ _new_main() {
 	if [ "" = "${file}" ] ; then 
 		_new_usage
 	else
+		file=$( echo ${file} | tr -d ' ' );
 		_new_create_if_needed ${file}
 		$( _new_editor ) ${file}
 	fi

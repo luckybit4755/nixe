@@ -12,7 +12,7 @@ nnoremap Q <nop>
 
 ab __c	/*heh 2>/dev/null ; gcc -o xxx xxx.c && ./xxx ; exit ${?} ; */<CR>#include <stdio.h><CR>#include <stdlib.h><CR><CR>int<CR>main( int argc, char *argv[] ) {<CR><CR>}
 
-ab __html <Esc>:setl noai nocin nosi inde=<CR>i<HTML><CR><tab><HEAD><CR><tab><tab><TITLE><C-R>=expand("%:t:r")<CR></TITLE><CR><CR><tab><tab><style><CR><tab><tab><tab>body {<CR><tab><tab><tab><tab>font-family: sans-serif;<CR><tab><tab><tab>}<CR><tab><tab></style><CR><CR><tab><tab><script type="text/javascript"><CR><tab><tab><tab>/* window.onload = function() {}; */<CR><tab><tab></script><CR><tab></HEAD><CR><tab><BODY><CR><tab><tab><a href="javascript:( function() {<CR><tab><tab>} )();">bookmarklet</a><CR><tab></BODY><CR></HTML><CR><Esc>dd<CR>:setl ai<CR>:setl cin<CR>:setl si<CR>1G<CR>
+ab __html <Esc>:setl noai nocin nosi inde=<CR>i<HTML><CR><tab><HEAD><CR><tab><tab><TITLE><C-R>=expand("%:t:r")<CR></TITLE><CR><CR><tab><tab><style><CR><tab><tab><tab>body {<CR><tab><tab><tab><tab>font-family: sans-serif;<CR><tab><tab><tab>}<CR><tab><tab></style><CR><CR><tab><tab><script type="text/javascript"><CR><tab><tab><tab>/* window.addEventListener('load', () => {} ); */<CR><tab><tab></script><CR><tab></HEAD><CR><tab><BODY><CR><tab><tab><a href="javascript:( function() {<CR><tab><tab>} )();">bookmarklet</a><CR><tab></BODY><CR></HTML><CR><Esc>dd<CR>:setl ai<CR>:setl cin<CR>:setl si<CR>1G<CR>
 
 ab __java <C-r>%<Esc>:s,.*/,,<CR>:s,.java$,,<CR>:s,.*,package##import org.apache.log4j.Logger;##/**# *# * # *# * @author Valerie GvM# *# */#public class & {#\tprivate static final Logger LOGGER = Logger.getLogger( &.class );#};,<CR>:%s,#,\r,g<CR>_bh_repackage<CR>/^public<CR>
 
