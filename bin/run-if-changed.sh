@@ -5,14 +5,14 @@ _run_if_changed_main() {
 	local command
 
 	case ${#} in
-		1) echo wtf? ; file=${1} ; command=${file} ; echo fuck ;;
-		2) file=${1} ; shift ; command=${*} ;;
-		*) _run_if_changed_usage ; return 33
+		0) _run_if_changed_usage ; return 33 ;;
+		1) file=${1} ; command=${file} ;;
+		*) file=${1} ; shift ; command=${*} ;;
 	esac
 
 	local stamp=33 #$( _run_if_changed_stamp ${file} )
 
-	echo "watching ${file} to see if ${stamp} changes..."
+	echo "watching ${file} at ${stamp}, run: ${command}"
 
 	while true ; do 
 		local nu=$( _run_if_changed_stamp ${file} )
@@ -20,9 +20,11 @@ _run_if_changed_main() {
 			echo that is boring >/dev/null
 		else 
 			stamp=${nu}
-			clear;
-			echo what a thrill "${command}: ${nu}"
+
+			clear
+			echo "updated ${file} to ${stamp}, run: ${command}"
 			${command} 2>&1 | tee /tmp/rif-${USER}.txt
+			echo "ran"
 		fi
 		sleep 1
 	done
