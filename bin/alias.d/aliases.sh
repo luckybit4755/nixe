@@ -22,6 +22,7 @@ alias cum='pwd > ~/.cumrc'
 alias here='cd $( cat ~/.cumrc )'
 alias trim="sed 's,^ *,,;s, *$,,'"
 alias imageInfo='sips -g pixelHeight -g pixelWidth'
+alias stfu='unset HISTFILE; echo ww'
 
 # this is terrible...
 if [ "Darwin" = "$( uname )" ] ; then
