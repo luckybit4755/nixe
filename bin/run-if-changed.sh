@@ -23,7 +23,7 @@ _run_if_changed_main() {
 
 			clear
 			echo "updated ${file} to ${stamp}, run: ${command}"
-			${command} 2>&1 | tee /tmp/rif-${USER}.txt
+			time ${command} 2>&1 | tee /tmp/rif-${USER}.txt
 			echo "ran"
 		fi
 		sleep 1
