@@ -13,6 +13,7 @@ _code_watcher_main() {
         else
             stamp=${nu}
 
+			reset
             clear
             echo "update detected at ($(date)), running ${*}"
 			printf "%${COLUMNS}s\n" "" | sed 's, ,-,g'
