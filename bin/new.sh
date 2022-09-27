@@ -1,5 +1,32 @@
 #!/bin/bash
 
+_new_py() {
+	local file="${*}"
+	local script=$( basename "${file}" | cut -f1 -d. | tr - _ )
+cat << EOM | cut -f2- | sed 's,\t,    ,;s, *$,,' > $1
+	#!/usr/bin/env python
+	#############################################################################
+
+	import argparse
+	import os
+
+	class ${script}:
+		def __init__(self):
+			self.parser = argparse.ArgumentParser(description="my cool script is cool")
+			self.parser.add_argument("--log_directory", type=str, default="logs")
+
+		def main(self):     
+			args = self.parser.parse_args()
+
+
+	if __name__ == "__main__":
+		${script}().main()
+
+	# EOF
+	#############################################################################
+EOM
+}
+
 _new_java() {
 	local file="${*}"
 	local script=$( basename "${file}" | cut -f1 -d. | tr - _ )
@@ -50,14 +77,26 @@ cat << EOM | cut -f2- > $1
 		}
 
 		main( args ) {
-			fs.readFile( args[ 0 ], 'utf-8', (e,d)=>{
+			return fs.readFile( args[ 0 ], 'utf-8', (e,d)=>{
 				if ( e ) throw e;
 				this.onFile( JSON.parse( d ) );
 			});
+			require( 'readline' )
+				.createInterface( { input:process.stdin, terminal:false } )
+				.on( 'line', ( line ) => this.onLine( line ) )
+				.on( 'close', () => this.onClose() )
+			;
 		}
 
 		onFile(contents) {
 			console.log( JSON.stringify( contents, false, '\t' ) );
+		}
+
+		onLine( line ) {
+			console.log( line );
+		}
+	
+		onClose() {
 		}
 	};
 
@@ -102,16 +141,20 @@ EOM
 
 _new_html() {
 cat << EOM
-<HTML>
+<!DOCTYPE html PUBLIC"-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<HTML xmlns="http://www.w3.org/1999/xhtml">
 	<HEAD>
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+
 		<TITLE>$( basename ${*} | sed 's/\.html$//' )</TITLE>
 		<script type="text/javascript">
 			window.addEventListener('load', () => {} );
 		</script>
 		<style>
-			body {
-				font-family: sans-serif;
-			}
+			body { color:#ccb; background:black; font-family: sans-serif; margin:.5em; }
+			pre  { color:#8c8; }  
+			a    { color:#aad; text-decoration:none; }
 		</style>
 	</HEAD>
 	<BODY>
@@ -161,6 +204,9 @@ _new_create_if_needed() {
 	if [ ! -f ${file} ] ; then
 		local ext=$( echo ${file} | sed 's,.*\.,,' )
 		local type=${ext}
+		if [ "mjs" = "${type}" ] ; then
+			type="js"
+		fi
 		_new_${type} ${file} > ${file}
 		if [ frag != "${ext}" ] && [ html != "${ext}" ] ; then 
 			chmod 755 ${file}
