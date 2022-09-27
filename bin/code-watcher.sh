@@ -1,6 +1,6 @@
 #!/bin/bash	
 
-export EXTENSIONS="js|java|py|php|sh|awk"
+export EXTENSIONS="mjs|js|java|py|php|sh|awk"
 
 _code_watcher_main() {
 	local stamp=33
@@ -30,8 +30,9 @@ _code_watcher_timestamp() {
 
 # https://unix.stackexchange.com/questions/15308/how-to-use-find-command-to-search-for-multiple-extensions
 _code_watcher_find() {
-	find . \( \
+	find src \( \
 		   -path ./.git \
+		-o -path ./.svn \
 		-o -path ./node_modules \
 		-o -path ./vendor \
 	\) -prune -o -type f  \
