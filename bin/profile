@@ -1,6 +1,7 @@
 #!/bin/bash
 
 export NODE_PATH=/usr/lib/nodejs:/usr/lib/node_modules:/usr/share/javascript
+export ANACONDA=${HOME}/funk/anaconda3/bin
 alias gt='gnome-terminal'
 
 set_title() {
@@ -34,6 +35,7 @@ _source_em() {
 _aliases() {
 	_source_em ~/bin/alias.d
 	_source_em ~/bin/funk.d
+	_source_em ~/etc/bash.d
 }
 
 _shimo() {
@@ -46,6 +48,8 @@ _shimo() {
 		export PATH="$PYENV_ROOT/bin:$PATH"
 		eval "$(pyenv init --path)"
 	fi
+
+	export PATH="${ANACONDA}:${PATH}"
 }
 
 _setup() {
