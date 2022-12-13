@@ -29,6 +29,7 @@ _constant_strings_main() {
 
 		# very hacky
 		gsub( /'"'"'/, "\"", clean );
+		gsub( /`/, "\"", clean );
 
 		len = length( clean );
 		started = -1;
