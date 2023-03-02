@@ -733,13 +733,13 @@ noChange() {
 sl() {
 	LS_ARGS="-F --color=tty -h"
 	LS_ARGS="-F -h"
-	LESS_ARGS="-i --tabs=4"
+	LESS_ARGS="-Si -r --tabs=4"
 
 	if [ "$#" -lt 1 ] || [ "$#" -gt 1 ] || [ -d ${1} ] ; then
-		ls $LS_ARGS ${*}
+		ls ${LS_ARGS} ${*}
 	else
 		if [ -f ${1} ] ; then
-			less $LESS_ARGS ${1}
+			less ${LESS_ARGS} ${1}
 		else
 			man ${1}
         fi
