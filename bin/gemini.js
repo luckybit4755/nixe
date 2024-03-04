@@ -109,6 +109,7 @@ class Gemini {
 
 	workspace(prompt, force = false) {
 		const p = prompt
+			.replace(/[^\w\s]/g, ' ')
 			.replace(/\s+/,' ' )
 			.split(' ')
 			.filter(w => !STOPWORDS.has(w))
