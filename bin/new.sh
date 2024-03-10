@@ -3,27 +3,34 @@
 _new_py() {
 	local file="${*}"
 	local script=$( basename "${file}" | cut -f1 -d. | tr - _ )
-cat << EOM | cut -f2- | sed 's,\t,    ,;s, *$,,' > $1
-	#!/usr/bin/env python
-	#############################################################################
+#LOG = logging.getLOG(name)
+#LOG.setLevel(llevel) 
+#handler = logging.StreamHandler()
+#formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+#handler.setFormatter(formatter)
+#LOG.addHandler(handler)
+cat << EOM | cut -f2- | sed 's,\t,    ,g;s, *$,,' > $1
+    #!/usr/bin/env python
+    #############################################################################
 
-	import argparse
-	import os
+    import argparse
+    import os
+    import logging
 
-	class ${script}:
-		def __init__(self):
-			self.parser = argparse.ArgumentParser(description="my cool script is cool")
-			self.parser.add_argument("--log_directory", type=str, default="logs")
+    class ${script}:
+        LOG = logging.getLogger(__name__)
+        def __init__(self):
+            self.parser = argparse.ArgumentParser(description="my cool script is cool")
+            self.parser.add_argument("--log_directory", type=str, default="logs")
 
-		def main(self):     
-			args = self.parser.parse_args()
+        def main(self):     
+            args = self.parser.parse_args()
 
+    if __name__ == "__main__":
+        ${script}().main()
 
-	if __name__ == "__main__":
-		${script}().main()
-
-	# EOF
-	#############################################################################
+    # EOF
+    #############################################################################
 EOM
 }
 
@@ -40,30 +47,6 @@ cat << EOM | cut -f2- > $1
 EOM
 }
 
-_new_js_og() {
-	local file="${*}"
-	local script=$( basename "${file}" | cut -f1 -d. | tr - _ )
-cat << EOM | cut -f2- > $1
-	#!/usr/bin/env node 
-
-	const fs = require( 'fs' );
-
-	const ${script} = function() {
-		const self = this;
-
-		self.main = ( args ) => {
-			fs.readFile( args[ 0 ], 'utf-8', (e,d)=>{
-				if ( e ) throw e;
-				let o = JSON.parse( d );
-				console.log( JSON.stringify( o, false, '\t' ) );
-			});
-		};
-	};
-
-	new ${script}().main( process.argv.slice( 2 ) );
-EOM
-}
-
 _new_js() {
 	local file="${*}"
 	local script=$( basename "${file}" | cut -f1 -d. | tr - _ )
@@ -76,31 +59,31 @@ cat << EOM | cut -f2- > $1
 		constructor() {
 		}
 
-		main( args ) {
-			return fs.readFile( args[ 0 ], 'utf-8', (e,d)=>{
-				if ( e ) throw e;
-				this.onFile( JSON.parse( d ) );
+		main(args) {
+			return fs.readFile(args[0], 'utf-8', (e,d)=>{
+				if (e) throw e;
+				this.onFile(JSON.parse(d));
 			});
-			require( 'readline' )
-				.createInterface( { input:process.stdin, terminal:false } )
-				.on( 'line', ( line ) => this.onLine( line ) )
-				.on( 'close', () => this.onClose() )
+			require('readline')
+				.createInterface({input:process.stdin, terminal:false})
+				.on('line', line => this.onLine(line))
+				.on('close', () => this.onClose())
 			;
 		}
 
 		onFile(contents) {
-			console.log( JSON.stringify( contents, false, '\t' ) );
+			console.log(JSON.stringify(contents, false, '\t'));
 		}
 
-		onLine( line ) {
-			console.log( line );
+		onLine(line) {
+			console.log(line);
 		}
 	
 		onClose() {
 		}
 	};
 
-	new ${script}().main( process.argv.slice( 2 ) );
+	new ${script}().main(process.argv.slice(2));
 EOM
 }
 
