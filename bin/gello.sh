@@ -1,5 +1,6 @@
 #!/bin/bash	
 
+
 svg_bs='\
 	<rect x="0" y="0" width="800" height="600" style="fill:#444444;stroke-width:0; stroke:rgb(0,0,0)" rx="16" ry="16"/> \
 	HATERATION\
@@ -11,17 +12,20 @@ _bello_main() {
 	local xlabel="seconds per query"
 	local ylabel="number of responses"
 	local title="Responses per Query Time" 
+	local label_color="#DDDDFF"
 
 	if [ "" != "${TITLE}" ] ; then title=${TITLE} ; fi
 	if [ "" != "${XLABEL}" ] ; then xlabel=${XLABEL} ; fi
 	if [ "" != "${YLABEL}" ] ; then ylabel=${YLABEL} ; fi
+	if [ "" != "${LABEL_COLOR}" ] ; then label_color=${LABEL_COLOR} ; fi
 
-cat << EOM | gnuplot
+		#set terminal svg size 800,600 fname 'Helvetica' fsize 10;
+cat << EOM | tee .gp | gnuplot
 		set xlabel "${xlabel}"
 		set ylabel "${ylabel}"
-		set title "${title}" font "Helvetica,14" tc rgbcolor "#DDDDFF";
+		set title "${title}" font "Helvetica,14" tc rgbcolor "${label_color}";
 
-		set terminal svg size 800,600 fname 'Helvetica' fsize 10;
+		set terminal svg size 800,600 enhanced font 'Helvetica,10';
 		set output '.fu.svg';
 		set style data lines;
 
@@ -31,7 +35,7 @@ cat << EOM | gnuplot
 		$( ls ${*} | awk '{ 
 				l++;
 				printf( "\t\tset style line %d  lw 4;\n", l ); 
-				printf( "\t\tset style line 9%d lt 4 lw 4;\n", l ); 
+				#printf( "\t\tset style line 9%d lt 4 lw 4;\n", l ); 
 			}' 
 		)
 
@@ -39,13 +43,29 @@ cat << EOM | gnuplot
 			printf( "plot " ); 
 		} { 
 			if ( 0 != q++ ) printf( ", " ); 
-			printf( "\"%s\" lw 1.2 linetype %d, \"%s\" lw 3.5 linetype %d smooth bezier ", $1, q, $1, q ); 
+			file = $1;
+			title = file
+			sub(/\.txt$/, "", title);
+			gsub(/_/, " ", title);
+
+
+
+			printf( "\"%s\" lw 1.2 linetype %d title \"%s\"", file, q, title);
+			#printf( "\"%s\" lw 1.2 linetype %d", $1, q);
+
+
+
+			#printf( "\"%s\" lw 1.2 linetype %d, \"%s\" lw 3.5 linetype %d smooth bezier ", $1, q, $1, q ); 
 		} END { 
 			printf( ";\n" ); 
 		}' )
 EOM
+	# dark theme:
 	local fudge='<g style="fill:black; color:lightgray; stroke:currentColor; stroke-width:0.00; stroke-linecap:butt; stroke-linejoin:miter">'$(  grep path .fu.svg | grep -w Z | uniq  )'</g>'
 	cat .fu.svg | sed "s@</defs>@</defs>${svg_bs}@;s@black@lightgray@;s@HATERATION@${fudge}@" > fu.svg
+
+	# lite theme	
+	cp .fu.svg fu.svg
 }
 
 _bello_main ${*}

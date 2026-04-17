@@ -1,5 +1,9 @@
 #!/bin/bash
 
+new.js ${*}
+echo ww
+exit
+
 _new_py() {
 	local file="${*}"
 	local script=$( basename "${file}" | cut -f1 -d. | tr - _ )

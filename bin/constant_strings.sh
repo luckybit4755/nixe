@@ -1,11 +1,13 @@
 #!/bin/bash	
 
 _constant_strings_main() {
-	cat ${*} | gawk '
+	cat ${*} | gawk -v MULTI_WORD=${MULTI_WORD} -v JUST_PRINT=${JUST_PRINT} '
 	function constant_string( value ) {
 		first = substr(value,2,1);
 		if ( first ~ /[0-9$.\\]/ ) return; # avoid junk
-		if ( value ~ /[ \t]/ ) return; # no multi-word constants... good idea or bad idea?
+		if (!MULTI_WORD) {
+			if ( value ~ /[ \t]/ ) return; # no multi-word constants... good idea or bad idea?
+		}
 
 		name = value;
 		name = gensub( /([a-z])([A-Z])/, "\\1_\\2", "g", value );
@@ -14,6 +16,12 @@ _constant_strings_main() {
 		gsub( "-", "_", name );
 		sub( "^[^a-zA-Z_0-9]*", "", name );
 		sub( "[^a-zA-Z_0-9].*", "", name );
+
+		if (JUST_PRINT) {
+			print(value);
+			return 
+		}
+
 		if ( 2 >= length( name ) ) {
 			printf( "// %s\n", value );
 		} else {
@@ -48,8 +56,6 @@ _constant_strings_main() {
 				}
 			}
 		}
-	
-
 	}
 
 	/\*\// { COMMENT = 0 }

@@ -41,8 +41,8 @@
 export _b_add_file=~/.b_add_file
 export _b_add_hosthname=localhost
 
-set_title() {
-	echo -e "\033]0;" ${*} "\007"; 
+set_title () {
+  echo -ne "\033]30;${*}\007"
 }
 
 add() {
@@ -130,7 +130,19 @@ complete -F _ssh_complete -o filenames ssh 2>/dev/null
 ##############################################################################
 
 c() {
-	cd ${1} 2>/dev/null || cd $( ls -d *${1}* | head -1 ) || cd $( dirname ${1} ) || cd $( echo ${1} | tr . / ) 2>/dev/null
+	# from bard
+	if [[ -f ${1} ]]; then cd $( dirname ${1} ); else
+    if [[ ! -d ${1} ]]; then
+        echo -n "${1} doesn't exist, would you like to create it [Y/n]? "
+        read response
+        if [[ $response == "n" ]]; then
+            echo "Aborting."
+        else
+            mkdir -p ${1}
+            cd ${1}
+        fi
+    fi
+fi
 }
 
 ##############################################################################
@@ -147,6 +159,10 @@ c() {
 
 ##############################################################################
 
+_f_blender3d() {
+	blender ${*} &
+}
+
 _f_postscript() { 
 	ghostview ${*} &
 }
@@ -160,7 +176,7 @@ _f_gzip() {
 }
 
 _f_pdf() {
-	gv ${*} &
+	xpdf -z 200% ${*} &
 }
 
 _f_zip() {
@@ -199,6 +215,10 @@ _f_frag() {
 	glslViewer ${*}
 }
 
+_f_git() {
+	git clone ${*}
+}
+
 _f_what() {
 	if [ -e ${*} ] ; then
 		local type=$( file ${*} | awk '{print $2}' | tr '[A-Z]' '[a-z]' | tr -d '[[:punct:]]' )
@@ -208,6 +228,10 @@ _f_what() {
 		esac
 		echo ${type}
 	else
+		if [[ "${1}" == git@* ]] ; then
+			echo git
+			return
+		fi
 		if [ "http://" = "$( echo ${*} | cut -c1-7 )" ] ; then
 			echo url
 			return
@@ -230,6 +254,7 @@ _f_() {
 		fi
 		ftof=${match}
 	done
+
 	local what=$( _f_what ${ftof} )
 	if [ "" = "${what}" ] ; then
 		uhm... ${ftof}
@@ -252,7 +277,16 @@ f() {
 	if [ "" != "${what}" ] ; then
 		echo ${ftof}
 	fi
-	_f_${what} ${ftof} 
+	local f="_f_${what}"
+	type ${f} 2>&1 > /dev/null
+	#declare -f | egrep 
+	if [ 0 = ${?} ] ; then
+		${f} ${ftof} 
+	else 
+		echo "idk nuffin bout no ${f}, defaulting to open ${?}"
+		open ${ftof}
+	fi
+	return ${?}
 }
 
 _f_complete() {

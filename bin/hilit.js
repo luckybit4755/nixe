@@ -6,8 +6,10 @@ class hilit {
 
 	main( args ) {
 		this.expressions = [];
+		const noEscape = process.env.hasOwnProperty( 'NO_ESCAPE' );
+
 		args.forEach( (arg,i) => {
-			const x = (
+			const x = noEscape ? arg : (
 				( arg[0] === arg[arg.length-1] ) 
 				? arg.substr( 1, arg.length - 2 )
 				: `\(${this.escapeRegex( arg )}\)`
@@ -15,7 +17,9 @@ class hilit {
 			const c = hilit.COLORS[ i % hilit.COLORS.length ];
 			const expression = {
 				x:new RegExp( x, 'gi' ),
+				//r:`\u001B[${c}m$1\u001B[0m$2`
 				r:`\u001B[${c}m$1\u001B[0m`
+
 			}
 			this.expressions.push( expression );
 		});

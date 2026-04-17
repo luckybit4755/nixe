@@ -5,8 +5,8 @@ pp() {
 	echo name is ${name}
 	local env=$( pyenv virtualenvs | sed 's,^*, ,' | awk -v NAME=${name} '$1 == NAME { print }' )
 	if [ "" = "${env}" ] ; then
-		echo "creating env: ${name} ${*}"
-		pyenv virtualenv ${name} ${*} || return ${?}
+		echo "creating env: ${*} ${name}"
+		pyenv virtualenv ${*} ${name} || return ${?}
 	else
 		echo "found env: ${env}"
 	fi

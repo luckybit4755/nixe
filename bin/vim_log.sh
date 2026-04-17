@@ -1,5 +1,6 @@
 #!/bin/bash	
 
+export VIMRUNTIME=$(ls -d /usr/share/vim/vim[0-9]* | sort -V | tail -1)
 export VIM_LOG=${HOME}/.vim_log.txt
 
 _vim_log_set_title() {

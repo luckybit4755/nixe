@@ -331,4 +331,5 @@ _wuzzup_git_add_remote() {
 	fi
 }
 
+date +"%Y-%m-%d+%H-%M-%S ${*}" >> ${HOME}/.wuzzup_git.log
 _wuzzup_git_main ${*}

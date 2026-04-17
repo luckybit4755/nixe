@@ -3,7 +3,7 @@
 _pc_main() {
 #    awk -f ${HOME}/bin/columnbo.awk | sed 's, *$,,'
 
-	awk '
+	awk ${*} '
 BEGIN {
 	row = 0
 	max_fields = 0;

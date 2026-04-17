@@ -2,11 +2,17 @@
 # functions to do git things
 
 gut() {
-	local file=.gut.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}.
-	echo -e 'this file will go away after exiting the editor\n' > ${file}
-	git status >> ${file}
-	${EDITOR-vim} ${file}
-	rm ${file}
+    local file=.gut.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}.;
+    echo -e 'this file will go away after exiting the editor\n' > ${file};
+    gut.sh >> ${file};
+    ${EDITOR-vim} ${file};
+    rm ${file}
+
+#local file=.gut.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}.
+#echo -e 'this file will go away after exiting the editor\n' > ${file}
+#git status >> ${file}
+#${EDITOR-vim} ${file}
+#rm ${file}
 }
 
 gut_base() {

@@ -4,6 +4,8 @@ export NODE_PATH=/usr/lib/nodejs:/usr/lib/node_modules:/usr/share/javascript
 export ANACONDA=${HOME}/funk/anaconda3/bin
 alias gt='gnome-terminal'
 
+export QD="/storage/emulated/0/Documents"
+
 set_title() {
 	echo -e "\033]0;" ${*} "\007"; 
 }
@@ -12,7 +14,8 @@ _export() {
 	set -o vi
 	export PATH=${HOME}/bin:/opt/local/bin:/opt/local/sbin:/sbin:/usr/sbin:${PATH}:/usr/local/maven/bin:${HOME}/.local/bin
 
-	export DISPLAY=:0
+	# wtf?
+	#export DISPLAY=:0
 	export PS1="\h:\W[\t]: "
 
 	export VISUAL="${HOME}/bin/vim_log.sh"
@@ -35,15 +38,18 @@ _source_em() {
 _aliases() {
 	_source_em ~/bin/alias.d
 	_source_em ~/bin/funk.d
-	_source_em ~/etc/bash.d # for local things that shouldn't be checked in...
+	_source_em ~/funk/bin.d # for local things that shouldn't be checked in...
 }
 
 _shimo() {
-	export NVM_DIR="$HOME/.nvm"
-	[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-	nvm use node 2>&1 > /dev/null
+	# this is super slow now
+	if [ 0 = 1 ] ; then
+		export NVM_DIR="$HOME/.nvm"
+		[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+		nvm use node 2>&1 > /dev/null
+	fi
 
-	if [ 1 = 1 ] ; then
+	if [ e1 = 1 ] ; then
 		# git clone https://github.com/pyenv/pyenv.git ~/.pyenv
 		# git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
 
@@ -56,8 +62,8 @@ _shimo() {
 			eval "$(pyenv init -)" 
 			eval "$(pyenv virtualenv-init -)"
 		fi
-	else 
-		export PATH="${ANACONDA}:${PATH}"
+	#else 
+		#export PATH="${ANACONDA}:${PATH}"
 	fi
 }
 

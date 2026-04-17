@@ -5,7 +5,11 @@ const readline = require('readline')
 const { createHash } = require('crypto')
 
 const minimist = require("minimist")
+
 const { GoogleGenerativeAI } = require("@google/generative-ai")
+
+// alternative for handling a local endpoint
+const axios = require('axios')
 
 class Gemini {
 	constructor() {
@@ -15,10 +19,15 @@ class Gemini {
 				data_directory: "d",
 				api_key: "k",
 				input_file: "f",
+				poster: "p",
+				system: "s"
 			},
 			default: {
 				data_directory: `${process.env.HOME}/data/gemini`,
 				api_key: ".api.key",
+				//poster: 'http://127.0.0.1:13031/',
+				poster: 'http://localhost:11434/api/generate', /// ollama
+				system: "You are an expert in code analysis and generation. I ask you questions about code and issues and you help to pin point the problem, create, implement and test solutions. You are passionate about best practices and creating exemplary software.",
 			}
 		}
 	}
@@ -33,7 +42,7 @@ class Gemini {
 
         const prompt = (
 			args.input_file
-			? fs.readFileSync(args.input_file)
+			? fs.readFileSync(args.input_file).toString()
 			: ( 
 				args._.length 
 				? args._.join(' ') 
@@ -55,8 +64,8 @@ class Gemini {
 		if (fs.existsSync(responseFile)) {
 			console.error("> you don't come here for the hunting do you?")
 		} else {
-			console.error(`> Workspace: "${workspace}"`);
-			console.error(`> Prompt:    "${prompt}"`);
+			//console.error(`> Workspace: "${workspace}"`);
+			//console.error(`> Prompt:    "${prompt}"`);
 			console.error('> asking the robot...')
 
 			const configuration = {}   // TODO: handle model-configuration.json
@@ -64,9 +73,40 @@ class Gemini {
 			const genAI = new GoogleGenerativeAI(key)
 			const genModel = genAI.getGenerativeModel({model}) // TODO: use configuration
 
+			/*
 			const result = await genModel.generateContent(prompt);
 			const response = await result.response;
 			const text = response.text();
+			*/
+
+			let result = null, response = null, text = null
+			
+			if (args.poster) {
+				try {
+console.error('gimme dat!', args.poster)
+					//response = await axios.post(args.poster, prompt)
+					//text = response.data
+
+					const ollama = {prompt,
+						"model": "phi3",
+						"stream": false,
+						"system": args.system,
+					}
+					// "system": "You are helpful, no-nonsense AI assistant. You always try to answer honestly without extra woke comments and disclaimers. If you do not know the answer you ask questions to elicit more details."
+					const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+            		const aresponse = await axios.post(args.poster, JSON.stringify(ollama), {headers})
+					response = aresponse.data
+					text = aresponse.data.response
+					response = { url: args.poster, prompt, text } // the response object contains a circle
+				} catch (error) {
+					throw error
+				}
+			} else {
+throw new Error('pass')
+				result = await genModel.generateContent(prompt);
+				response = await result.response;
+				text = response.text();
+			}
 
 			fs.writeFileSync(responseFile, JSON.stringify(response, null, '\t'))
 			fs.writeFileSync(textFile, text)

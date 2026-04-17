@@ -7,6 +7,7 @@ JSPANK_TYPE_POJO="pojo"
 JSPANK_TYPE_INTERFACE="interface"
 JSPANK_TYPE_BASE="base"
 JSPANK_TYPE_ENTITY="entity"
+JSPANK_TYPE_JAKARTA="jakarta"
 JSPANK_TYPE_MANAGED="managed"
 JSPANK_TYPE_LOCAL="local"
 JSPANK_TYPE_MANAGER="manager"
@@ -129,6 +130,20 @@ cat << EOM
 EOM
 }
 
+_jspank_generate_jakarta_decl() {
+	local type="${1}" ; shift
+	local name="${1}" ; shift
+	if [ "id" = "${name}" ] ; then
+cat << EOM
+	@Id
+  	@GeneratedValue
+EOM
+	fi
+cat << EOM
+	private ${type} ${name};
+EOM
+}
+
 _jspank_generate_gs_simple() {
 	local type="${1}" ; shift
 	local name="${1}" ; shift
@@ -215,6 +230,30 @@ cat << EOM
 EOM
 }
 
+_jspank_generate_jakarta_gs() {
+	local type="${1}" ; shift
+	local name="${1}" ; shift
+	local upper=$( _jspank_first_up ${name} )
+	local lower=$( _jspank_first_down ${classname} )
+
+	#ANNOTATIONS!
+	if [ "1" = "$( _jspank_is_collection ${type} )" ] ; then
+cat << EOM
+	// @ManyToOne
+	// @JoinTable(name = "join_${lower}_${name}")
+	// @ManyToMany(fetch = FetchType.EAGER)
+	@OneToMany //(mappedBy = "${name}")
+EOM
+	fi
+
+cat << EOM 
+	public ${type} get${upper}() {
+		return this.${name};
+	}
+
+EOM
+}
+
 _jspank_generate_finders() {
 	local type="${1}" ; shift
 	local name="${1}" ; shift
@@ -253,14 +292,14 @@ _jspank_generate_constructor() {
 	done
 
 cat << EOM
-	public ${classname}( ${args} ) {
+	public ${classname}(${args}) {
 EOM
 	for i in ${*} ; do
 		local type=${TYPES[${i}]}
 		local name=${NAMES[${i}]}
 		local upper=$( _jspank_first_up ${name} )
 cat << EOM 
-		this.set${upper}( ${name} );
+		this.set${upper}(${name});
 EOM
 	done
 
@@ -304,6 +343,41 @@ _jspank_generate_entity_constructors() {
    	sed "s,${classname},${classname}Entity,g;s,this,super,g"
 }
 
+_jspank_generate_eq_hash() {
+	local classname=${1} ; shift
+	local lower=$( _jspank_first_down ${classname} )
+	local eq=$(echo ${NAMES[*]} | awk -v THAT=${lower} '
+			BEGIN { AND = "return" }
+		{
+			for (i = 1 ; i <= NF ; i++ ) {
+				field = $i;
+				printf("%s Objects.equals(this.%s, %s.%s)", AND, field, THAT, field)
+				AND = "\n\t\t\t&&"
+			}
+		}
+	')
+	local fields=$(echo ${NAMES[*]} | sed 's/ /, this./g;s/^/this./')
+cat << EOM
+	@Override
+	public boolean equals(Object that) {
+		if (this == that) return true;
+		if (!(that instanceof ${classname})) return false;
+		${classname} ${lower} = (${classname}) that;
+		${eq};
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(${fields});
+	}
+EOM
+}
+
+_jspank_generate_jakarta_constructors() {
+	local classname=${1} ; shift
+	_jspank_generate_constructors_core ${classname} 0
+}
+
 _jspank_generate_base_constructors() {
 	local classname=${1} ; shift
 	_jspank_generate_constructors_core ${classname} 0 |\
@@ -338,6 +412,19 @@ import javax.persistence.*;
 
 @javax.persistence.Entity
 public class ${classname}Entity extends ${classname}Base {
+EOM
+}
+
+_jspank_begin_class_jakarta() {
+	local classname=${1} ; shift
+cat << EOM
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
+public class ${classname}Entity {
 EOM
 }
 
@@ -586,51 +673,30 @@ cat << EOM
 EOM
 }
 
-_jspank_generate_to_string_bits_xml() {
-	local type="${1}" ; shift
-	local name="${1}" ; shift
-	local upper=$( _jspank_first_up ${name} )
-cat << EOM
-			.append( ", \"${name}\":\"" )
-			.append( this.get${upper}() )
-			.append( "\"" )
-EOM
-}
-
-_jspank_generate_to_string_xml() {
-	local classname=${1} ; shift
-	local lassname=$( _jspank_first_down ${classname} )
-cat << EOM 
-	public String toString() {
-		return this.toStringBuilder().toString();
-	}
-
-	public StringBuilder toStringBuilder() {
-		return this.toStringBuilder( new StringBuilder() );
-	}
-
-	public StringBuilder toStringBuilder( StringBuilder stringBuilder ) {
-		return stringBuilder
-			.append( "{\"classname\":\"${classname}\"" )
-EOM
-	_jspank_loop _jspank_generate_to_string_bits_xml
-cat << EOM
-			.append( "}" )
-		;
-	}
-
-EOM
-}
-
 _jspank_generate_to_string_bits_json() {
 	local type="${1}" ; shift
 	local name="${1}" ; shift
 	local upper=$( _jspank_first_up ${name} )
+
+	local isLower=$(echo ${type} | cut -c1 | egrep -c '[a-z]')
+	local isPrimitive=$(echo ${type} | egrep -ci '^(int|float|long|Integer)$')
+	local primitive
+	let primitive=${isLower}+${isPrimitive}
+
+	local quote=""
+	if [ 0 == ${primitive} ] ; then
+		quote='"'
+	fi
+
+	if [ "" = "${quote}" ] ; then
 cat << EOM
-			.append( "<${name}>" )
-			.append( this.get${upper}() )
-			.append( "</${name}>" )
+			.append(", \"${name}\":").append(this.${name})
 EOM
+	else
+cat << EOM
+			.append(", \"${name}\":\"").append(this.${name}).append("\"")
+EOM
+	fi
 }
 
 _jspank_generate_to_string_json() {
@@ -642,24 +708,75 @@ cat << EOM
 	}
 
 	public StringBuilder toStringBuilder() {
-		return this.toStringBuilder( new StringBuilder() );
+		return this.toStringBuilder(new StringBuilder());
 	}
 
-	public StringBuilder toStringBuilder( StringBuilder stringBuilder ) {
+	public StringBuilder toStringBuilder(StringBuilder stringBuilder) {
 		return stringBuilder
-			.append( "<${lassname}>" )
+			.append( "{\"classname\":\"${classname}\"" )
 EOM
-	_jspank_loop _jspank_generate_to_string_bits_xml
+	_jspank_loop _jspank_generate_to_string_bits_json
 cat << EOM
-			.append( "</${lassname}>" )
+			.append( "}" )
 		;
 	}
+EOM
+}
 
+_jspank_generate_to_string_bits_terse() {
+	local type=${1} ; shift
+	local name=${1} ; shift
+	local isLower=$(echo ${type} | cut -c1 | egrep -c '[a-z]')
+	local isPrimitive=$(echo ${type} | egrep -ci '^(int|float|long|Integer|String)$')
+	local primitive
+	let primitive=${isLower}+${isPrimitive}
+
+	local quote=""
+	local op=""
+	if [ 0 == ${primitive} ] ; then
+		op=".toString()"
+		quote='"'
+	else
+		if [ "String" = "${type}" ] ; then
+			quote='"'
+		fi
+	fi
+	if [ "" = "${quote}" ] ; then
+cat << EOM
+			.append(name).append("='").append(this.${name}${op}).append("'")
+EOM
+	else 
+cat << EOM
+			.append(name).append("=").append(this.${name}${op})
+EOM
+	fi
+}
+
+_jspank_generate_to_string_terse() {
+	local classname=${1} ; shift
+	local lassname=$( _jspank_first_down ${classname} )
+cat << EOM 
+	public String toString() {
+		return this.toStringBuilder().toString();
+	}
+
+	public StringBuilder toStringBuilder() {
+		return this.toStringBuilder(new StringBuilder());
+	}
+
+	public StringBuilder toStringBuilder(StringBuilder stringBuilder) {
+		return stringBuilder.append("${classname}{")
+EOM
+	_jspank_loop _jspank_generate_to_string_bits_terse
+cat << EOM
+			.append("}");
+		;
+	}
 EOM
 }
 
 _jspank_generate_to_string() {
-	_jspank_generate_to_string_xml ${*}
+	_jspank_generate_to_string_json ${*}
 }
 
 _jspank_generate_copy_bit() {
@@ -790,6 +907,16 @@ _jspank_generate() {
 		_jspank_loop _jspank_generate_entity_gs
 	fi
 
+	_jspank_one_of "${_jspank_type}" ${JSPANK_TYPE_JAKARTA}
+	if [ 0 = ${?} ] ; then
+		_jspank_loop _jspank_generate_jakarta_decl
+		echo
+		 _jspank_generate_jakarta_constructors ${classname}
+		_jspank_loop _jspank_generate_jakarta_gs
+		_jspank_generate_eq_hash ${classname}
+		_jspank_generate_to_string ${classname}
+	fi
+
 	_jspank_one_of "${_jspank_type}" ${JSPANK_TYPE_POJO} ${JSPANK_TYPE_BASE} 
 	if [ 0 = ${?} ] ; then
 		_jspank_loop _jspank_generate_gs
@@ -844,18 +971,22 @@ _jspank_main() {
 		classname=$( echo ${classname} | sed 's,^.*\.,,' )
 	fi
 
+	echo "classname is ${classname}" > /dev/stderr
+
 	_jspank_action=${JSPANK_GENERATE}
 	_jspank_type=${JSPANK_TYPE_POJO}
 
 	while [ 1 -le ${#} ] ; do
-		case "${1}" in
+		local arg=${1} ; shift
+		case "${arg}" in
 			-t|-type|--type)
+				local type=${1}
 				shift
-				if [ "" = "${1}" ] ; then
+				if [ "" = "${type}" ] ; then
 					_jspank_action=${JSPANK_USAGE}
 				else 
-					_jspank_type="${1}"
-					shift;
+					_jspank_type="${type}"
+					echo "type is ${_jspank_type}" >/dev/stderr
 				fi
 				;;
 			*) _jspank_action=${JSPANK_USAGE}

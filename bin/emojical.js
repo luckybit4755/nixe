@@ -1,5 +1,7 @@
 #!/usr/bin/env node 
 
+// TODO: check out https://www.copyandpastesymbols.net/lenny-faces.html
+
 /*
 (づ￣ ³￣)づ
 ԅ(‾⌣‾ԅ)
